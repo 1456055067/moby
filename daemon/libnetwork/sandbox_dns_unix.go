@@ -24,7 +24,8 @@ const (
 	dirPerm       = 0o755
 	filePerm      = 0o644
 
-	resolverIPSandbox = "127.0.0.11"
+	resolverIPSandbox   = "127.0.0.11" // IPv4 resolver address
+	resolverIPv6Sandbox = "::1"        // IPv6 resolver address (loopback)
 )
 
 // AddHostsEntry adds an entry to /etc/hosts.
@@ -62,7 +63,8 @@ func (sb *Sandbox) startResolver(restore bool) {
 		// have a gateway. So, if the Sandbox is only connected to an 'internal' network,
 		// it will not forward DNS requests to external resolvers. The resolver's
 		// proxyDNS setting is then updated as network Endpoints are added/removed.
-		sb.resolver = NewResolver(resolverIPSandbox, sb.hasExternalAccess(), sb)
+		resolverIP := sb.getResolverIP()
+		sb.resolver = NewResolver(resolverIP, sb.hasExternalAccess(), sb)
 		defer func() {
 			if err != nil {
 				sb.resolver = nil
@@ -350,4 +352,32 @@ func copyFile(src, dst string) error {
 		return err
 	}
 	return os.WriteFile(dst, sBytes, filePerm)
+}
+
+// getResolverIP returns the appropriate resolver IP address based on the sandbox's
+// network configuration. For IPv4-only networks it returns the IPv4 resolver address.
+// Otherwise it returns the IPv6 loopback address for dual-stack or IPv6-only networks.
+func (sb *Sandbox) getResolverIP() string {
+	var hasIPv4, hasIPv6 bool
+
+	// Check all endpoints to determine IP family support
+	for _, ep := range sb.Endpoints() {
+		n := ep.getNetwork()
+		if n != nil {
+			if n.IPv4Enabled() {
+				hasIPv4 = true
+			}
+			if n.IPv6Enabled() {
+				hasIPv6 = true
+			}
+		}
+	}
+
+	// If IPv4-only, use IPv4 resolver
+	if hasIPv4 && !hasIPv6 {
+		return resolverIPSandbox
+	}
+
+	// Default to IPv6 resolver for dual-stack or IPv6-only
+	return resolverIPv6Sandbox
 }
