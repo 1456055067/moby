@@ -1655,11 +1655,18 @@ func (daemon *Daemon) networkOptions(conf *config.Config, pg plugingetter.Plugin
 
 	options = append(options, networkPlatformOptions(conf)...)
 
-	defaultAddressPools := ipamutils.GetLocalScopeDefaultNetworks()
+	// Start with default IPv4 and IPv6 address pools.
+	// IPv4 pools have been the default for years; IPv6 pools are now added for IPv6-only support.
+	defaultAddressPools := append(
+		ipamutils.GetLocalScopeDefaultNetworks(),
+		ipamutils.GetLocalScopeDefaultNetworksV6()...,
+	)
+
 	if len(conf.NetworkConfig.DefaultAddressPools.Value()) > 0 {
 		defaultAddressPools = conf.NetworkConfig.DefaultAddressPools.Value()
 	}
-	// If the Engine admin don't configure default-address-pools or if they
+
+	// If the Engine admin doesn't configure default-address-pools or if they
 	// don't provide any IPv6 prefix, we derive a ULA prefix from the daemon's
 	// hostID and add it to the pools. This makes dynamic IPv6 subnet
 	// allocation possible out-of-the-box.

@@ -31,7 +31,11 @@ var _ ipamapi.PoolStatuser = &Allocator{}
 // address pools for 'local' and 'global' address spaces.
 func Register(ic ipamapi.Registerer, lAddrPools, gAddrPools []*ipamutils.NetworkToSplit) error {
 	if len(gAddrPools) == 0 {
-		gAddrPools = ipamutils.GetGlobalScopeDefaultNetworks()
+		// Include both IPv4 and IPv6 global scope default networks
+		gAddrPools = append(
+			ipamutils.GetGlobalScopeDefaultNetworks(),
+			ipamutils.GetGlobalScopeDefaultNetworksV6()...,
+		)
 	}
 
 	a, err := NewAllocator(lAddrPools, gAddrPools)
