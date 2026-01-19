@@ -22,12 +22,18 @@ var (
 
 	// IPv6 Unique Local Addresses (ULA)(RFC 4193) for local scope networks.
 	localScopeDefaultNetworksV6 = []*NetworkToSplit{
-		{netip.MustParsePrefix("fd00::/48"), 64}, // ~65k /64 subnets, each with over 18 quintillion addresses
+		{netip.MustParsePrefix("fd00:0:1::/48"), 64}, // ~65k /64 subnets, each with over 18 quintillion addresses
+		{netip.MustParsePrefix("fd00:0:2::/48"), 64},
+		{netip.MustParsePrefix("fd00:0:3::/48"), 64},
+		{netip.MustParsePrefix("fd00:0:4::/48"), 64},
+		{netip.MustParsePrefix("fd00:0:5::/48"), 64},
+		{netip.MustParsePrefix("fd00:0:6::/48"), 64},
+		{netip.MustParsePrefix("fd00:0:7::/48"), 64},
 	}
 
 	// IPv6 Unique Local Addresses for global scope networks.
 	globalScopeDefaultNetworksV6 = []*NetworkToSplit{
-		{netip.MustParsePrefix("fd00:0:1::/48"), 64},
+		{netip.MustParsePrefix("fd00::/48"), 64},
 	}
 )
 
