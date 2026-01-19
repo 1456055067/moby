@@ -38,7 +38,14 @@ func (n *bridgeNetwork) addPortMappings(
 	pbmReq portBindingMode,
 ) (_ []portmapperapi.PortBinding, retErr error) {
 	if len(defHostIP) == 0 {
-		defHostIP = net.IPv4zero
+		// Determine default host IP based on enabled IP families.
+		// For IPv4-only networks, default to IPv4 unspecified address (0.0.0.0).
+		// For dual-stack or IPv6-only, default to IPv6 unspecified address (::).
+		if pbmReq.ipv4 && !pbmReq.ipv6 {
+			defHostIP = net.IPv4zero
+		} else {
+			defHostIP = net.IPv6zero
+		}
 	} else if addr4 := defHostIP.To4(); addr4 != nil {
 		// Unmap the address if it's IPv4-mapped IPv6.
 		defHostIP = addr4
