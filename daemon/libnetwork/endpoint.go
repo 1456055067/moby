@@ -1216,6 +1216,19 @@ func (ep *Endpoint) assignAddressVersion(ipVer int, ipam ipamapi.Ipam) error {
 
 	ipInfo := n.getIPInfo(ipVer)
 	if len(ipInfo) == 0 {
+		// Check if this IP version is enabled on the network.
+		// If disabled, this is not an error - it's expected behavior for IPv4-only or IPv6-only networks.
+		var enabled bool
+		if ipVer == 4 {
+			enabled = n.IPv4Enabled()
+		} else {
+			enabled = n.IPv6Enabled()
+		}
+		if !enabled {
+			// IP version is intentionally disabled, this is not an error.
+			return nil
+		}
+		// IP version is enabled but has no pools configured - this is an error
 		return fmt.Errorf("no IPv%d information available for endpoint %s", ipVer, ep.Name())
 	}
 
